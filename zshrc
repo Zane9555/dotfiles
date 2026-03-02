@@ -27,6 +27,8 @@ source "$DOTFILES_DIR/prompt/themes.zsh"
 
 # ── Plugins ───────────────────────────────────────────────────────────
 source "$DOTFILES_DIR/plugins/zoxide/zoxide.zsh"
+source "$DOTFILES_DIR/plugins/aliases/aliases.zsh"
+
 
 # ── Local (personal config) ──────────────────────────────────────────
 source "$DOTFILES_DIR/local/aliases.zsh"

@@ -15,12 +15,6 @@ PROMPT_THEME="orbit"
 setopt PROMPT_SUBST
 
 # ── Theme: gh0st ──────────────────────────────────────────────────────
-# Two-tone prompt with user/host, italic path, and git branch.
-# Green dot = clean, red dot = dirty.
-#
-# Looks like:
-#    user / hostname [~/Projects/my-app]  main ● ➜
-#
 function theme_gh0st() {
     typeset -g _GH0ST_GIT_MSG=""
 
@@ -30,7 +24,7 @@ function theme_gh0st() {
         if (( GIT_IS_REPO )); then
             local icon="%F{green}"
             (( GIT_HAS_MODIFIED || GIT_HAS_UNTRACKED )) && icon="%F{red}"
-            _GH0ST_GIT_MSG="  %F{magenta}${GIT_BRANCH} ${icon}%{\e[0m%}"
+            _GH0ST_GIT_MSG="  %F{magenta}${GIT_BRANCH} ${icon}%f%b"
         fi
     }
 
@@ -48,12 +42,6 @@ function theme_gh0st() {
 # ── /Theme: gh0st ─────────────────────────────────────────────────────
 
 # ── Theme: z ──────────────────────────────────────────────────────────
-# Minimal single-line prompt. Time on the left, git on the right.
-# Colored dots show modified (red), staged (green), untracked (cyan).
-#
-# Looks like:
-#   14:32 ➜ my-app              ( main) ●●●
-#
 function theme_z() {
     typeset -g GIT_RPROMPT=""
 
@@ -77,42 +65,41 @@ function theme_z() {
 # ── /Theme: z ─────────────────────────────────────────────────────────
 
 # ── Theme: orbit ──────────────────────────────────────────────────────
-# Two-line prompt with connecting lines. Time on the right.
-# Colored dots show modified (red), staged (green), untracked (cyan).
-#
-# Looks like:
-#   ╭── ~ ~/Projects/my-app on  main ●●         [14:32]
-#   ╰─ ›
-#
 function theme_orbit() {
     typeset -g _ORBIT_GIT_MSG=""
 
     function _orbit_updater() {
         _git_engine
+
         _ORBIT_GIT_MSG=""
+
         if (( GIT_IS_REPO )); then
             local ind=""
+
             (( GIT_HAS_MODIFIED ))  && ind+="%F{red}●"
             (( GIT_HAS_UNTRACKED )) && ind+="%F{cyan}●"
             (( GIT_HAS_STAGED ))    && ind+="%F{green}●"
-            _ORBIT_GIT_MSG=" on %F{magenta} ${GIT_BRANCH}%f ${ind}"
+
+            [[ -n "$ind" ]] && ind=" ${ind}"
+
+            _ORBIT_GIT_MSG=" %F{magenta} ${GIT_BRANCH}%f${ind}%f"
         fi
+
         RPROMPT="%F{238}[%D{%T}]%f"
     }
 
     _register_prompt_hook _orbit_updater
-    PS1=$'\n'"%F{blue}╭──%f %F{white}%f %B%F{blue}%~%f%b\${_ORBIT_GIT_MSG}"$'\n'"%F{blue}╰─%f %B%(?.%F{green}›.%F{red}›)%f%b "
+
+    # ── Construction ──────────────────────────────────────────────────
+    local s_dir="%B%F{blue}%~%f%b"
+    local s_folder="%F{cyan}%f"
+    local s_arrow="%B%(?.%F{green}›.%F{red}›)%f%b"
+
+    PS1=$'\n'"%F{blue}╭─%f ${s_folder} ${s_dir}\${_ORBIT_GIT_MSG}"$'\n'"%F{blue}╰─%f ${s_arrow} "
 }
 # ── /Theme: orbit ─────────────────────────────────────────────────────
 
 # ── Theme: 10k ────────────────────────────────────────────────────────
-# Minimal left prompt with execution timer and git on the right.
-# Shows how long the last command took if > 2 seconds.
-# Yellow ! if last command failed. Yellow * if background jobs.
-#
-# Looks like:
-#   ➜                              3s [  main ●● ] ~/Projects/my-app
-#
 function theme_10k() {
     typeset -g _10K_START_TIME=""
 
@@ -127,7 +114,7 @@ function theme_10k() {
             (( GIT_HAS_MODIFIED ))  && ind+="%F{red}●"
             (( GIT_HAS_UNTRACKED )) && ind+="%F{cyan}●"
             (( GIT_HAS_STAGED ))    && ind+="%F{green}●"
-            git_part="[ %F{magenta} ${GIT_BRANCH}%f ${ind}%f ] "
+            git_part="[ %F{magenta} ${GIT_BRANCH}%f ${ind}%f ] "
         fi
 
         if [[ -n "$_10K_START_TIME" ]]; then

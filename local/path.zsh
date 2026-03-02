@@ -16,3 +16,8 @@ export PATH="$HOME/.local/bin:$PATH"
 # Homebrew-installed completions + your own custom completions
 fpath=(/opt/homebrew/share/zsh/site-functions ~/.zsh/completions $fpath)
 # ── /FPATH ────────────────────────────────────────────────────────────
+
+# ── EZA(ls replacement) Themes ────────────────────────────────────
+export EZA_CONFIG_DIR="$HOME/.config/eza"
+# ── /EZA(ls replacement) Themes ────────────────────────────────────
+
