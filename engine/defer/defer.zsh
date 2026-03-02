@@ -1,0 +1,110 @@
+# ══════════════════════════════════════════════════════════════════════
+# ZSH-DEFER
+# Inline port of romkatv/zsh-defer.
+# Queues commands to run after the prompt draws, while the shell is idle.
+# This is what makes deferred plugin loading fast — your prompt appears
+# instantly, then heavy plugins load in the background.
+#
+# Usage:
+#   zsh-defer source "some-slow-plugin.zsh"
+#   zsh-defer -c 'eval "$(slow-tool init zsh)"'
+#
+# You shouldn't need to edit this file.
+# ══════════════════════════════════════════════════════════════════════
+
+typeset -ga ZSH_DEFER_QUEUE
+
+function _zsh_defer_reset_autosuggestions() {
+    unsetopt warn_nested_var 2>/dev/null
+    orig_buffer=; orig_postdisplay=
+}
+zle -N zsh-defer-reset-autosuggestions_ _zsh_defer_reset_autosuggestions
+
+function _zsh_defer_schedule() {
+    local fd
+    if [[ $1 == 0 ]]; then
+        exec {fd}</dev/null
+    else
+        zmodload zsh/zselect
+        exec {fd}< <(zselect -t $1)
+    fi
+    zle -F $fd _zsh_defer_worker
+}
+
+function _zsh_defer_worker() {
+    emulate -L zsh; zle -F $1; exec {1}>&-
+    while (( $#ZSH_DEFER_QUEUE && !KEYS_QUEUED_COUNT && !PENDING )); do
+        local delay="${ZSH_DEFER_QUEUE[1]%% *}"
+        local task="${ZSH_DEFER_QUEUE[1]#* }"
+        if [[ $delay == 0 ]]; then
+            _zsh_defer_executor $task
+            shift ZSH_DEFER_QUEUE
+        else
+            _zsh_defer_schedule $delay
+            ZSH_DEFER_QUEUE[1]="0 $task"
+            return 0
+        fi
+    done
+    (( $#ZSH_DEFER_QUEUE )) && _zsh_defer_schedule 0
+    return 0
+}
+zle -N _zsh_defer_worker
+
+function _zsh_defer_executor() {
+    local flags="${1%% *}"
+    local command="${1#* }"
+    local current_dir="${(%):-%/}"
+    local -i fd_stdout=-1 fd_stderr=-1
+
+    [[ $flags == *1* ]] && exec {fd_stdout}>&1 1>/dev/null
+    [[ $flags == *2* ]] && exec {fd_stderr}>&2 2>/dev/null
+    {
+        () {
+            if [[ $flags == *c* ]]; then eval $command
+            else "${(@Q)${(z)command}}"; fi
+        }
+        emulate -L zsh
+        local hook; local -a hooks_to_run
+        [[ $flags == *d* && ${(%):-%/} != $current_dir ]] && hooks_to_run+=($chpwd $chpwd_functions)
+        [[ $flags == *m* ]] && hooks_to_run+=($precmd $precmd_functions)
+        for hook in $hooks_to_run; do
+            (( $+functions[$hook] )) || continue
+            $hook; emulate -L zsh
+        done
+        [[ $flags == *s* && $+ZSH_AUTOSUGGEST_STRATEGY    == 1 ]] && zle zsh-defer-reset-autosuggestions_
+        [[ $flags == *z* && $+_ZSH_HIGHLIGHT_PRIOR_BUFFER == 1 ]] && _ZSH_HIGHLIGHT_PRIOR_BUFFER=
+        [[ $flags == *p* ]] && zle reset-prompt
+        [[ $flags == *r* ]] && zle -R
+    } always {
+        (( fd_stdout >= 0 )) && exec 1>&$fd_stdout {fd_stdout}>&-
+        (( fd_stderr >= 0 )) && exec 2>&$fd_stderr {fd_stderr}>&-
+    }
+}
+
+function zsh-defer() {
+    emulate -L zsh -o extended_glob
+    local default_flags="12dmszpr"
+    local active_flags=$default_flags
+    local -i delay_time
+    local command_str opt OPTARG match mbegin mend
+
+    while getopts ":hc:t:a$default_flags" opt; do
+        case $opt in
+            c) active_flags+=c; command_str=$OPTARG ;;
+            t) zmodload zsh/mathfunc; (( delay_time = ceil(OPTARG * 100) )) ;;
+            a) [[ $active_flags == *c* ]] && active_flags=c || active_flags= ;;
+            +a) [[ $active_flags == *c* ]] && active_flags=c$default_flags || active_flags=$default_flags ;;
+            ?) [[ $active_flags == (#b)(*)$opt(*) ]] && active_flags=$match[1]$match[2] ;;
+            +?) [[ $active_flags != *${opt:1}* ]] && active_flags+=${opt:1} ;;
+            *) return 1 ;;
+        esac
+    done
+
+    if [[ $active_flags != *c* ]]; then
+        command_str="${(@q)@[OPTIND,-1]}"
+    fi
+
+    [[ $active_flags == *p* && $+RPS1 == 0 ]] && RPS1=
+    (( $#ZSH_DEFER_QUEUE )) || _zsh_defer_schedule 0
+    ZSH_DEFER_QUEUE+="$delay_time $active_flags $command_str"
+}

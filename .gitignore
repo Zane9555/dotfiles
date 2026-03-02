@@ -1,0 +1,17 @@
+# Secrets — never commit these
+.env
+*.env
+
+# Zsh generated files
+*.zwc
+.zcompdump*
+.zsh_history
+
+# Plugin folders (auto-installed, don't need to be in the repo)
+zsh/plugins/
+
+# macOS
+.DS_Store
+
+# Cache
+.cache/
