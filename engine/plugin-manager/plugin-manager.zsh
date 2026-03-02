@@ -64,6 +64,7 @@ function plug() {
 # ── Your Plugins ──────────────────────────────────────────────────────
 # Prefix with "defer" to lazy-load after prompt draws
 typeset -a ZPLUGINS=(
+    "Aloxaf/fzf-tab"
     "defer" "hlissner/zsh-autopair"
     "defer" "zsh-users/zsh-autosuggestions"
     "defer" "zdharma-continuum/fast-syntax-highlighting"

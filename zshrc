@@ -26,6 +26,8 @@ source "$DOTFILES_DIR/prompt/git-engine.zsh"
 source "$DOTFILES_DIR/prompt/themes.zsh"
 
 # ── Plugins ───────────────────────────────────────────────────────────
+source "$DOTFILES_DIR/plugins/fzf/fzf.zsh"
+source "$DOTFILES_DIR/plugins/fzf/fzf-tab.zsh"
 source "$DOTFILES_DIR/plugins/zoxide/zoxide.zsh"
 source "$DOTFILES_DIR/plugins/aliases/aliases.zsh"
 
