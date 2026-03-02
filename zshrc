@@ -7,6 +7,9 @@
 # Where this repo lives on disk
 export DOTFILES_DIR="$HOME/dotfiles"
 
+# ── Local (must load first — PATH needed by everything below) ────────
+source "$DOTFILES_DIR/local/path.zsh"
+
 # ── Core (order matters) ──────────────────────────────────────────────
 source "$DOTFILES_DIR/core/options.zsh"
 source "$DOTFILES_DIR/core/history.zsh"
@@ -26,5 +29,4 @@ source "$DOTFILES_DIR/prompt/themes.zsh"
 source "$DOTFILES_DIR/plugins/zoxide/zoxide.zsh"
 
 # ── Local (personal config) ──────────────────────────────────────────
-# source "$DOTFILES_DIR/local/path.zsh"
-# source "$DOTFILES_DIR/local/aliases.zsh"
+source "$DOTFILES_DIR/local/aliases.zsh"

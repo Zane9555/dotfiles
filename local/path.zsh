@@ -1,9 +1,18 @@
 # ══════════════════════════════════════════════════════════════════════
 # PATH & FPATH
-# Add directories to your shell's search path here.
-# This is where Homebrew, local binaries, and completion paths go.
+# Directories your shell searches for commands and completions.
+# Without these, Homebrew tools (brew, git, zoxide, etc.) won't be found.
 # ══════════════════════════════════════════════════════════════════════
 
-# TODO: Port from ~/.zshrc.backup when ready
-# export PATH="/opt/homebrew/bin:$HOME/.local/bin:$PATH"
-# fpath=(/opt/homebrew/share/zsh/site-functions ~/.zsh/completions $fpath)
+# ── PATH ──────────────────────────────────────────────────────────────
+# Homebrew (Apple Silicon installs to /opt/homebrew)
+export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
+
+# Local binaries (pip install --user, custom scripts, etc.)
+export PATH="$HOME/.local/bin:$PATH"
+# ── /PATH ─────────────────────────────────────────────────────────────
+
+# ── FPATH (completion search path) ────────────────────────────────────
+# Homebrew-installed completions + your own custom completions
+fpath=(/opt/homebrew/share/zsh/site-functions ~/.zsh/completions $fpath)
+# ── /FPATH ────────────────────────────────────────────────────────────

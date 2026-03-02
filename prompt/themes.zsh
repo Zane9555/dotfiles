@@ -10,7 +10,7 @@
 # ┌──────────────────────────────────┐
 # │  CHANGE YOUR THEME HERE          │
 # └──────────────────────────────────┘
-PROMPT_THEME="gh0st"
+PROMPT_THEME="orbit"
 
 setopt PROMPT_SUBST
 
